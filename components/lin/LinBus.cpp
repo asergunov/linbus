@@ -9,7 +9,7 @@ namespace linbus {
 static const char *const TAG = "linbus.LinBus";
 
 // the listeners are needed for slave, not yet implemented here
-// LinBus::LinBus(u_int8_t expected_listener_count) {
+// LinBus::LinBus(uint8_t expected_listener_count) {
 //   this->listeners_heater_.reserve(expected_listener_count);
 // }
 
@@ -57,15 +57,15 @@ void LinBus::add_trigger(LinbusTrigger *trigger) {
 
 // a slave function, maybe a "set_data" prepares the Slave response
 // as Slave cannot "send"
-bool LinBus::answer_lin_order_(const u_int8_t pid) {
+bool LinBus::answer_lin_order_(const uint8_t pid) {
   // Alive message
   if (pid == LIN_PID_linbusINET_BOX) {
-    std::array<u_int8_t, 8> response = this->lin_empty_response_;
+    std::array<uint8_t, 8> response = this->lin_empty_response_;
 
     if (this->updates_to_send_.empty() && !this->has_update_to_submit_()) {
       response[0] = 0xFE;
     }
-    this->write_lin_answer_(response.data(), (u_int8_t) sizeof(response));
+    this->write_lin_answer_(response.data(), (uint8_t) sizeof(response));
     return true;
   }
   return LinBusProtocol::answer_lin_order_(pid);

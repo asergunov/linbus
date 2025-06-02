@@ -42,7 +42,7 @@ void LinBusListener::setup_framework() {
   }
 }
 
-u_int32_t LinBusListener::onSerialEvent() {
+uint32_t LinBusListener::onSerialEvent() {
   this->onReceive_();
 
   if (this->uart_ != nullptr) {
@@ -90,8 +90,8 @@ extern void loop1() {
     // Wait for setup_framework to finish.
     delay(100);
   } else {
-    u_int32_t sleep1 = 0xFFFFFFFF;
-    u_int32_t sleep2 = 0xFFFFFFFF;
+    uint32_t sleep1 = 0xFFFFFFFF;
+    uint32_t sleep2 = 0xFFFFFFFF;
     if (LIN_BUS_LISTENER_INSTANCE_1 != nullptr) {
       sleep1 = LIN_BUS_LISTENER_INSTANCE_1->onSerialEvent();
     }

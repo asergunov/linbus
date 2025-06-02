@@ -70,11 +70,11 @@ void LinBusListener::setup() {
 
 void LinBusListener::update() { this->check_for_lin_fault_(); }
 
-bool LinBusListener::send_lin_pid_withdata_(const u_int8_t *data, u_int8_t len, const u_int8_t pid) {
+bool LinBusListener::send_lin_pid_withdata_(const uint8_t *data, uint8_t len, const uint8_t pid) {
 
 
   // prefill the header: break and sync byte
-  u_int8_t linframe[11] = {0x00, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  uint8_t linframe[11] = {0x00, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   // add PID with checksum
   linframe[2] = pid | (addr_parity(pid) << 6);
@@ -85,7 +85,7 @@ bool LinBusListener::send_lin_pid_withdata_(const u_int8_t *data, u_int8_t len, 
   }
 
   // calc CRC
-  u_int8_t data_CRC = 0;
+  uint8_t data_CRC = 0;
   if (this->lin_checksum_ == LIN_CHECKSUM::LIN_CHECKSUM_VERSION_1 || this->current_PID_ == DIAGNOSTIC_FRAME_SLAVE) {
     // LIN checksum V1
     data_CRC = data_checksum(data, len, 0);
@@ -102,7 +102,7 @@ bool LinBusListener::send_lin_pid_withdata_(const u_int8_t *data, u_int8_t len, 
   }
 }
 
-void LinBusListener::write_lin_answer_(const u_int8_t *data, u_int8_t len) {
+void LinBusListener::write_lin_answer_(const uint8_t *data, uint8_t len) {
   QUEUE_LOG_MSG log_msg = QUEUE_LOG_MSG();
   if (!this->can_write_lin_answer_) {
     log_msg.type = QUEUE_LOG_MSG_TYPE::ERROR_LIN_ANSWER_CAN_WRITE_LIN_ANSWER;
@@ -116,7 +116,7 @@ void LinBusListener::write_lin_answer_(const u_int8_t *data, u_int8_t len) {
     return;
   }
 
-  u_int8_t data_CRC = 0;
+  uint8_t data_CRC = 0;
   if (this->lin_checksum_ == LIN_CHECKSUM::LIN_CHECKSUM_VERSION_1 || this->current_PID_ == DIAGNOSTIC_FRAME_SLAVE) {
     // LIN checksum V1
     data_CRC = data_checksum(data, len, 0);
@@ -140,7 +140,7 @@ void LinBusListener::write_lin_answer_(const u_int8_t *data, u_int8_t len) {
 #ifdef ESPHOME_LOG_HAS_VERBOSE
   log_msg.type = QUEUE_LOG_MSG_TYPE::VERBOSE_LIN_ANSWER_RESPONSE;
   log_msg.current_PID = this->current_PID_;
-  for (u_int8_t i = 0; i < len; i++) {
+  for (uint8_t i = 0; i < len; i++) {
     log_msg.data[i] = data[i];
   }
   log_msg.data[len] = data_CRC;
@@ -184,10 +184,10 @@ bool LinBusListener::check_for_lin_fault_() {
   }
 }
 
-bool lin_request_pid_(const u_int8_t pid) {
+bool lin_request_pid_(const uint8_t pid) {
   this->current_PID_ = pid;
   // prefill the header: break and sync byte
-  u_int8_t data[3] = {0x00, 0x55, 0x00};
+  uint8_t data[3] = {0x00, 0x55, 0x00};
 
   data[2] = this->current_PID_ | (addr_parity(this->current_PID_) << 6;
   if (!this->observer_mode_) {
@@ -208,7 +208,7 @@ void LinBusListener::onReceive_() {
 }
 
 void LinBusListener::read_lin_frame_() {
-  u_int8_t buf;
+  uint8_t buf;
   QUEUE_LOG_MSG log_msg = QUEUE_LOG_MSG();
   switch (this->current_state_) {
     case READ_STATE_BREAK:
@@ -221,7 +221,7 @@ void LinBusListener::read_lin_frame_() {
             log_msg.type = QUEUE_LOG_MSG_TYPE::ERROR_READ_LIN_FRAME_UNABLE_TO_ANSWER;
           } else {
             log_msg.type = QUEUE_LOG_MSG_TYPE::ERROR_READ_LIN_FRAME_LOST_MSG;
-            for (u_int8_t i = 0; i < this->current_data_count_; i++) {
+            for (uint8_t i = 0; i < this->current_data_count_; i++) {
               log_msg.data[i] = this->current_data_[i];
             }
             log_msg.len = this->current_data_count_;
@@ -304,8 +304,8 @@ void LinBusListener::read_lin_frame_() {
   }
 
   if (this->current_state_ == READ_STATE_ACT && this->current_data_count_ > 1) {
-    u_int8_t data_length = this->current_data_count_ - 1;
-    u_int8_t data_CRC = this->current_data_[this->current_data_count_ - 1];
+    uint8_t data_length = this->current_data_count_ - 1;
+    uint8_t data_CRC = this->current_data_[this->current_data_count_ - 1];
     bool message_source_know = false;
     bool message_from_master = true;
 
@@ -324,8 +324,8 @@ void LinBusListener::read_lin_frame_() {
         message_from_master = false;
       }
     } else {
-      u_int8_t data_CRC_master = data_checksum(this->current_data_, data_length, this->current_PID_);
-      u_int8_t data_CRC_slave = data_checksum(this->current_data_, data_length, this->current_PID_with_parity_);
+      uint8_t data_CRC_master = data_checksum(this->current_data_, data_length, this->current_PID_);
+      uint8_t data_CRC_slave = data_checksum(this->current_data_, data_length, this->current_PID_with_parity_);
       if (data_CRC != data_CRC_master && data_CRC != data_CRC_slave) {
         log_msg.type = QUEUE_LOG_MSG_TYPE::WARN_READ_LIN_FRAME_LINv2_CRC;
         xQueueSendFromISR(this->log_queue_, (void *) &log_msg, QUEUE_WAIT_DONT_BLOCK);
@@ -340,7 +340,7 @@ void LinBusListener::read_lin_frame_() {
 #ifdef ESPHOME_LOG_HAS_VERBOSE
     log_msg.type = QUEUE_LOG_MSG_TYPE::VERBOSE_READ_LIN_FRAME_MSG;
     log_msg.current_PID = this->current_PID_;
-    for (u_int8_t i = 0; i < this->current_data_count_; i++) {
+    for (uint8_t i = 0; i < this->current_data_count_; i++) {
       log_msg.data[i] = this->current_data_[i];
     }
     log_msg.len = this->current_data_count_;
@@ -354,7 +354,7 @@ void LinBusListener::read_lin_frame_() {
       QUEUE_LIN_MSG lin_msg;
       lin_msg.current_PID = this->current_PID_;
       lin_msg.len = this->current_data_count_ - 1;
-      for (u_int8_t i = 0; i < lin_msg.len; i++) {
+      for (uint8_t i = 0; i < lin_msg.len; i++) {
         lin_msg.data[i] = this->current_data_[i];
       }
       xQueueSendFromISR(this->lin_msg_queue_, (void *) &lin_msg, QUEUE_WAIT_DONT_BLOCK);
@@ -364,7 +364,7 @@ void LinBusListener::read_lin_frame_() {
 }
 
 void LinBusListener::clear_uart_buffer_() {
-  u_int8_t buffer;
+  uint8_t buffer;
   while (this->available() && this->read_byte(&buffer)) {
   }
 }

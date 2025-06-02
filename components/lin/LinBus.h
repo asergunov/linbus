@@ -33,7 +33,7 @@ template<typename... Ts> class LinbusSendAction;
 class LinBus : public LinBusProtocol {
  public:
   // slave not yet implementded
-  // LinBus(u_int8_t expected_listener_count);
+  // LinBus(uint8_t expected_listener_count);
 
   // master onlysend:
   LinBus(){};
@@ -59,7 +59,7 @@ class LinBus : public LinBusProtocol {
   std::vector<LinbusTrigger *> triggers_{};
   uint8_t pid_{0x00};
 
-  // bool answer_lin_order_(const u_int8_t pid) override;
+  // bool answer_lin_order_(const uint8_t pid) override;
 
 
 };

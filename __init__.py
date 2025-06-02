@@ -216,8 +216,7 @@ def final_validate_device_schema(
         extra=cv.ALLOW_EXTRA,
     )
 
-
-CONFIG_SCHEMA = cv.All(
+LINBUS_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(LinbusComponent),
@@ -226,21 +225,28 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_FAULT_PIN): pins.gpio_input_pin_schema,
             cv.Optional(CONF_OBSERVER_MODE): cv.boolean,        
             cv.Optional(CONF_ON_FRAME): automation.validate_automation(
-            {
-                cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(LinbusTrigger),
-                cv.Required(CONF_LIN_ID): cv.int_range(min=0, max=0x40),
-            },
-            validate_id,
-        ),
+                {
+                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(LinbusTrigger),
+                    cv.Required(CONF_LIN_ID): cv.int_range(min=0, max=0x40),
+                },
+                validate_id,
+            ),
         }
     )
     # Polling is for presenting data to sensors.
     # Reading and communication is done in a seperate thread/core.
     .extend(cv.polling_component_schema("500ms"))
     .extend(cv.COMPONENT_SCHEMA)
-    .extend(uart.UART_DEVICE_SCHEMA),
+    .extend(uart.UART_DEVICE_SCHEMA)
+)
+
+CONFIG_SCHEMA = cv.All(
+    cv.Any(
+        LINBUS_SCHEMA,
+        cv.ensure_list(LINBUS_SCHEMA)
+    ),
     cv.only_on(["esp32", "rp2040"]),
-) 
+)
 
 FINAL_VALIDATE_SCHEMA = cv.All(
     final_validate_device_schema(
