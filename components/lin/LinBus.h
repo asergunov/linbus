@@ -4,6 +4,7 @@
 #include "esphome/core/optional.h"
 #include "esphome/core/automation.h"
 
+#include <cstdint>
 #include <list>
 #include <queue>
 #include <set>
@@ -36,7 +37,7 @@ class LinBus : public LinBusProtocol {
   // LinBus(uint8_t expected_listener_count);
 
   // master onlysend:
-  LinBus(){};
+  LinBus() {};
 
   // These methods are derived from baseclass and found in LinBusListener:
   // void setup() override;
@@ -53,15 +54,16 @@ class LinBus : public LinBusProtocol {
   void send_data(uint8_t lin_pid, const std::vector<uint8_t> &data);
 
   //  void add_trigger(LinbusTrigger *trigger);
+ protected:
+  bool answer_lin_order_(const uint8_t pid) override;
 
  protected:
   template<typename... Ts> friend class LinbusSendAction;
   std::vector<LinbusTrigger *> triggers_{};
   uint8_t pid_{0x00};
+  uint32_t device_registered_ = 0;
 
   // bool answer_lin_order_(const uint8_t pid) override;
-
-
 };
 
 template<typename... Ts> class LinbusSendAction : public Action<Ts...>, public Parented<LinBus> {
@@ -85,10 +87,10 @@ template<typename... Ts> class LinbusSendAction : public Action<Ts...>, public P
 };
 
 class LinbusTrigger : public Trigger<std::vector<uint8_t>, uint32_t, bool>, public Component {
-  friend class Linbus;
+  friend class LinBus;
 
  public:
-  explicit LinbusTrigger(LinBus *parent, const std::uint8_t lin_id) : parent_(parent), lin_id_(lin_id){};
+  explicit LinbusTrigger(LinBus *parent, const std::uint8_t lin_id) : parent_(parent), lin_id_(lin_id) {};
 
   // void setup() override { this->add_trigger(this); }
   void setup() override { this->parent_->add_trigger(this); }

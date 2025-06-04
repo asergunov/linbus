@@ -25,14 +25,14 @@ void LinBus::send_data(uint8_t lin_pid, const std::vector<uint8_t> &data) {
     len = LIN_MAX_DATA_LENGTH;
 
   // call the protocol to send Data
-  send_lin_pid_withdata_(data, len, lin_pid);
+  send_lin_pid_withdata_(data.data(), len, lin_pid);
 }
 
 void LinBus::lin_heartbeat() { this->device_registered_ = micros(); }
 
 void LinBus::lin_reset_device() {
   LinBusProtocol::lin_reset_device();
-  // this->device_registered_ = micros();
+  this->device_registered_ = micros();
   // this->init_recieved_ = 0;
 
   // this->update_time_ = 0;
@@ -50,7 +50,7 @@ void LinBus::lin_reset_device() {
 // }
 
 void LinBus::add_trigger(LinbusTrigger *trigger) {
-  ESP_LOGVV(TAG, "add trigger for pid=0x%03x", trigger->can_id_);
+  ESP_LOGVV(TAG, "add trigger for pid=0x%03" PRIx32 "", trigger->lin_id_);
 
   this->triggers_.push_back(trigger);
 };
@@ -59,15 +59,16 @@ void LinBus::add_trigger(LinbusTrigger *trigger) {
 // as Slave cannot "send"
 bool LinBus::answer_lin_order_(const uint8_t pid) {
   // Alive message
-  if (pid == LIN_PID_linbusINET_BOX) {
-    std::array<uint8_t, 8> response = this->lin_empty_response_;
+  // TODO: ???
+  // if (pid == LIN_PID_linbusINET_BOX) {
+  //   std::array<uint8_t, 8> response = this->lin_empty_response_;
 
-    if (this->updates_to_send_.empty() && !this->has_update_to_submit_()) {
-      response[0] = 0xFE;
-    }
-    this->write_lin_answer_(response.data(), (uint8_t) sizeof(response));
-    return true;
-  }
+  //   if (this->updates_to_send_.empty() && !this->has_update_to_submit_()) {
+  //     response[0] = 0xFE;
+  //   }
+  //   this->write_lin_answer_(response.data(), (uint8_t) sizeof(response));
+  //   return true;
+  // }
   return LinBusProtocol::answer_lin_order_(pid);
 }
 
@@ -112,15 +113,16 @@ void LinBus::update() {
 
   // check if incoming messages are present and
 
+  // TODO: ???
   // from receive que jkjk:
   uint8_t lin_id = 0x11;
   // fire all triggers
-  for (auto *trigger : this->triggers_) {
-    if (trigger->lin_id_ == lin_id) {
-      trigger->trigger(data, lin_id);
-      // where does it go? jkjk
-    }
-  }
+  // for (auto *trigger : this->triggers_) {
+  //   if (trigger->lin_id_ == lin_id) {
+  //     trigger->trigger(data, lin_id);
+  //     // where does it go? jkjk
+  //   }
+  // }
 
   LinBusProtocol::update();
 }

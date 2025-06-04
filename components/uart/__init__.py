@@ -35,15 +35,15 @@ uart_ns = cg.esphome_ns.namespace("uart")
 UARTComponent = uart_ns.class_("UARTComponent")
 
 IDFUARTComponent = uart_ns.class_(
-    "truma_IDFUARTComponent", UARTComponent, cg.Component)
+    "linbus_IDFUARTComponent", UARTComponent, cg.Component)
 ESP32ArduinoUARTComponent = uart_ns.class_(
-    "truma_ESP32ArduinoUARTComponent", UARTComponent, cg.Component
+    "linbus_ESP32ArduinoUARTComponent", UARTComponent, cg.Component
 )
 ESP8266UartComponent = uart_ns.class_(
     "ESP8266UartComponent", UARTComponent, cg.Component
 )
 RP2040UartComponent = uart_ns.class_(
-    "truma_RP2040UartComponent", UARTComponent, cg.Component)
+    "linbus_RP2040UartComponent", UARTComponent, cg.Component)
 
 UARTDevice = uart_ns.class_("UARTDevice")
 UARTWriteAction = uart_ns.class_("UARTWriteAction", automation.Action)

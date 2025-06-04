@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "esphome/core/defines.h"
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 
@@ -21,7 +22,7 @@
 #endif  // USE_RP2040
 
 namespace esphome {
-namespace lin_bus {
+namespace linbus {
 
 enum class LIN_CHECKSUM { LIN_CHECKSUM_VERSION_1, LIN_CHECKSUM_VERSION_2 };
 

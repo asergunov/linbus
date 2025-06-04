@@ -1,4 +1,5 @@
 #pragma once
+#include "esphome/core/defines.h"
 
 #ifdef USE_ESP_IDF
 
@@ -7,7 +8,7 @@
 namespace esphome {
 namespace uart {
 
-class truma_IDFUARTComponent : public IDFUARTComponent {
+class linbus_IDFUARTComponent : public IDFUARTComponent {
  public:
   uint8_t get_hw_serial_number() { return this->uart_num_; }
   // `QueueHandle_t uart_event_queue_;` is also added to base class.

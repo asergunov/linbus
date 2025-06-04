@@ -58,7 +58,9 @@ def validate_raw_data(value):
     )
 
 linbus_ns = cg.esphome_ns.namespace("linbus")
-LinbusComponent = linbus_ns.class_("LinbusComponent", cg.Component)
+LinBusListener = linbus_ns.class_("LinBusListener", cg.PollingComponent, uart.UARTDevice)
+LinBusProtocol = linbus_ns.class_("LinBusProtocol", LinBusListener)
+LinbusComponent = linbus_ns.class_("LinBus", LinBusProtocol)
 LinbusTrigger = linbus_ns.class_(
     "LinbusTrigger",
     automation.Trigger.template(cg.std_vector.template(cg.uint8), cg.uint32),
@@ -250,7 +252,7 @@ FINAL_VALIDATE_SCHEMA = cv.All(
                    CONF_LINBUS_ID, CONF_ID], LinbusComponent),
 )
 
-async def setup_linbus_core_(var, config):
+async def to_code(config):
     if CORE.using_esp_idf:
         # Run interrupt on core 0. ESP Home runs on core 1.
         cg.add_build_flag("-DARDUINO_SERIAL_EVENT_TASK_RUNNING_CORE=0")
@@ -261,7 +263,8 @@ async def setup_linbus_core_(var, config):
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
 
-    cg.add(var.set_lin_id([config[CONF_LIN_ID]]))
+    if linId := config.get(CONF_LIN_ID):
+        cg.add(var.set_lin_id(linId))
 
     if CONF_LIN_CHECKSUM in config:
         cg.add(var.set_lin_checksum(
@@ -294,11 +297,6 @@ async def setup_linbus_core_(var, config):
             ],
             conf,
         )
-
-async def register_linbus(var, config):
-    if not CORE.has_id(config[CONF_ID]):
-        var = cg.new_Pvariable(config[CONF_ID], var)
-    await setup_linbus_core_(var, config)
 
 # Actions
 

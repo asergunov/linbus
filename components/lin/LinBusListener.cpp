@@ -4,7 +4,7 @@
 #include "helpers.h"
 
 namespace esphome {
-namespace lin_bus {
+namespace linbus {
 
 /* LIN Packet Format:
     _________ __________ _________ ____________ __________
@@ -80,7 +80,7 @@ bool LinBusListener::send_lin_pid_withdata_(const uint8_t *data, uint8_t len, co
   linframe[2] = pid | (addr_parity(pid) << 6);
 
   // fill databytes
-  for (i = 0; i < len; i++) {
+  for (int i = 0; i < len; i++) {
     linframe[i + 3] = data[i];
   }
 
@@ -100,6 +100,8 @@ bool LinBusListener::send_lin_pid_withdata_(const uint8_t *data, uint8_t len, co
     this->write(data_CRC);
     ESP_LOGV(TAG, "LinTX %02X %s", pid, format_hex_pretty(linframe, len + 3).c_str());
   }
+
+  return true;
 }
 
 void LinBusListener::write_lin_answer_(const uint8_t *data, uint8_t len) {
@@ -184,20 +186,21 @@ bool LinBusListener::check_for_lin_fault_() {
   }
 }
 
-bool lin_request_pid_(const uint8_t pid) {
+bool LinBusListener::lin_request_pid_(const uint8_t pid) {
   this->current_PID_ = pid;
   // prefill the header: break and sync byte
   uint8_t data[3] = {0x00, 0x55, 0x00};
 
-  data[2] = this->current_PID_ | (addr_parity(this->current_PID_) << 6;
+  data[2] = this->current_PID_ | (addr_parity(this->current_PID_) << 6);
   if (!this->observer_mode_) {
-    this->write_array(data, len);
-    this->write(data_CRC);
+    this->write_array(data, sizeof(data));
+    this->write(data_checksum(data, sizeof(data), 0));
   }
+  return true;
 }
 
 void LinBusListener::onReceive_() {
-  // this is called if an UART Evente has been detected.
+  // this is called if an UART Event has been detected.
   // defined in device specific LINBus Listener
   if (!this->check_for_lin_fault_()) {
     while (this->available()) {
@@ -447,7 +450,7 @@ void LinBusListener::process_log_queue_(TickType_t xTicksToWait) {
                     log_msg.message_source_know ? (log_msg.message_from_master ? " - MASTER" : " - SLAVE") : "",
                     log_msg.current_data_valid ? "" : "INVALID");
         } else {
-          ESP_LOGV(TAG, "PID %02X      %s %s %S", current_PID_, format_hex_pretty(log_msg.data, log_msg.len).c_str(),
+          ESP_LOGV(TAG, "PID %02X      %s %s %s", current_PID_, format_hex_pretty(log_msg.data, log_msg.len).c_str(),
                    log_msg.message_source_know ? (log_msg.message_from_master ? " - MASTER" : " - SLAVE") : "",
                    log_msg.current_data_valid ? "" : "INVALID");
         }

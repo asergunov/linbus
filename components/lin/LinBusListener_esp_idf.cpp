@@ -6,7 +6,7 @@
 #include "esphome/components/uart/uart_component_esp_idf.h"
 
 namespace esphome {
-namespace lin_bus {
+namespace linbus {
 
 static const char *const TAG = "linbus.LinBusListener";
 
@@ -26,7 +26,7 @@ void LinBusListener::setup_framework() {
   uart_intr.rx_timeout_thresh =
       10;  // UART_TOUT_THRESH_DEFAULT,  //10 works well for my short messages I need send/receive
   uart_intr.txfifo_empty_intr_thresh = 10;  // UART_EMPTY_THRESH_DEFAULT
-  uart_intr_config(uart_num, &uart_intr);
+  uart_intr_config(static_cast<uart_port_t>(uart_num), &uart_intr);
 
   // Creating UART event Task
   xTaskCreatePinnedToCore(LinBusListener::uartEventTask_,
@@ -64,7 +64,7 @@ void LinBusListener::uartEventTask_(void *args) {
   uart_event_t event;
   for (;;) {
     // Waiting for UART event.
-    if (xQueueReceive(*uartEventQueue, (void *) &event, (portTickType) portMAX_DELAY)) {
+    if (xQueueReceive(*uartEventQueue, (void *) &event, portMAX_DELAY)) {
       if (event.type == UART_DATA && instance->available() > 0) {
         instance->onReceive_();
       } else if (event.type == UART_BREAK) {
@@ -82,7 +82,7 @@ void LinBusListener::uartEventTask_(void *args) {
 void LinBusListener::eventTask_(void *args) {
   LinBusListener *instance = (LinBusListener *) args;
   for (;;) {
-    instance->process_lin_msg_queue_((portTickType) portMAX_DELAY);
+    instance->process_lin_msg_queue_(portMAX_DELAY);
   }
 }
 

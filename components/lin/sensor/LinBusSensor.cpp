@@ -21,5 +21,5 @@ void LinSensor::dump_config() {
   // todo post LIN Data config: Master/Slave, PID, Bitoffset, Datatype
   //ESP_LOGCONFIG(TAG, "  Type '%s'", enum_to_c_str(this->type_));
 }
-}  // namespace truma_inetbox
+}  // namespace linbus_inetbox
 }  // namespace esphome

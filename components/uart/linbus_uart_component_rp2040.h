@@ -7,7 +7,7 @@
 namespace esphome {
 namespace uart {
 
-class truma_RP2040UartComponent : public RP2040UartComponent {
+class linbus_RP2040UartComponent : public RP2040UartComponent {
  public:
   bool is_hw_serial() { return this->hw_serial_; }
   HardwareSerial *get_hw_serial() { return this->serial_; }

@@ -1,3 +1,4 @@
+#include "hal/uart_types.h"
 #ifdef USE_ESP_IDF
 
 #include "uart_component_esp_idf.h"
@@ -47,24 +48,51 @@ uart_config_t IDFUARTComponent::get_config_() {
   uart_config.parity = parity;
   uart_config.stop_bits = this->stop_bits_ == 1 ? UART_STOP_BITS_1 : UART_STOP_BITS_2;
   uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
-  uart_config.source_clk = UART_SCLK_APB;
+  uart_config.source_clk = UART_SCLK_DEFAULT;
   uart_config.rx_flow_ctrl_thresh = 122;
 
   return uart_config;
 }
 
 void IDFUARTComponent::setup() {
-  static uint8_t next_uart_num = 0;
+  static uart_port_t next_uart_num = UART_NUM_0;
+  auto inc_uart_num = [](uart_port_t num) -> uart_port_t {
+    switch (num) {
+      case UART_NUM_0:
+        return UART_NUM_1;
+      case UART_NUM_1:
+#if SOC_UART_HP_NUM > 2
+        return UART_NUM_2;
+      case UART_NUM_2:
+#endif
+#if SOC_UART_HP_NUM > 3
+        return UART_NUM_3;
+      case UART_NUM_3:
+#endif
+#if SOC_UART_HP_NUM > 4
+        return UART_NUM_4;
+      case UART_NUM_4:
+#endif
+// #if (SOC_UART_LP_NUM >= 1)
+//         return LP_UART_NUM_0;
+//       case LP_UART_NUM_0:
+// #endif
+        return UART_NUM_MAX;
+      default:
+        return UART_NUM_MAX;
+    }
+  };
 #ifdef USE_LOGGER
   if (logger::global_logger->get_uart_num() == next_uart_num)
-    next_uart_num++;
+    next_uart_num = inc_uart_num(next_uart_num);
 #endif
   if (next_uart_num >= UART_NUM_MAX) {
     ESP_LOGW(TAG, "Maximum number of UART components created already.");
     this->mark_failed();
     return;
   }
-  this->uart_num_ = next_uart_num++;
+  next_uart_num = inc_uart_num(next_uart_num);
+  this->uart_num_ = next_uart_num;
   ESP_LOGCONFIG(TAG, "Setting up UART %u...", this->uart_num_);
 
   this->lock_ = xSemaphoreCreateMutex();
@@ -124,10 +152,10 @@ void IDFUARTComponent::dump_config() {
   if (this->rx_pin_ != nullptr) {
     ESP_LOGCONFIG(TAG, "  RX Buffer Size: %u", this->rx_buffer_size_);
   }
-  ESP_LOGCONFIG(TAG, "  Baud Rate: %u baud", this->baud_rate_);
-  ESP_LOGCONFIG(TAG, "  Data Bits: %u", this->data_bits_);
+  ESP_LOGCONFIG(TAG, "  Baud Rate: %" PRIu32 " baud", this->baud_rate_);
+  ESP_LOGCONFIG(TAG, "  Data Bits: %" PRIu8 , this->data_bits_);
   ESP_LOGCONFIG(TAG, "  Parity: %s", LOG_STR_ARG(parity_to_str(this->parity_)));
-  ESP_LOGCONFIG(TAG, "  Stop bits: %u", this->stop_bits_);
+  ESP_LOGCONFIG(TAG, "  Stop bits: %" PRIu8 , this->stop_bits_);
   this->check_logger_conflict();
 }
 
@@ -149,7 +177,7 @@ bool IDFUARTComponent::peek_byte(uint8_t *data) {
   if (this->has_peek_) {
     *data = this->peek_byte_;
   } else {
-    int len = uart_read_bytes(this->uart_num_, data, 1, 20 / portTICK_RATE_MS);
+    int len = uart_read_bytes(this->uart_num_, data, 1, 20 / portTICK_PERIOD_MS);
     if (len == 0) {
       *data = 0;
     } else {
@@ -173,7 +201,7 @@ bool IDFUARTComponent::read_array(uint8_t *data, size_t len) {
     this->has_peek_ = false;
   }
   if (length_to_read > 0)
-    uart_read_bytes(this->uart_num_, data, length_to_read, 20 / portTICK_RATE_MS);
+    uart_read_bytes(this->uart_num_, data, length_to_read, 20 / portTICK_PERIOD_MS);
   xSemaphoreGive(this->lock_);
 #ifdef USE_UART_DEBUGGER
   for (size_t i = 0; i < len; i++) {

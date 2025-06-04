@@ -29,6 +29,7 @@ void LinBusProtocol::lin_reset_device() {
 bool LinBusProtocol::lin_request_pid(const uint8_t pid) {
   // return if Bus error, not yet implemented
   // return true if PID could be sent
+  return false;
 }
 
 bool LinBusProtocol::answer_lin_order_(const uint8_t pid) {
@@ -180,7 +181,7 @@ void LinBusProtocol::lin_msg_diag_single_(const uint8_t *message, uint8_t length
 
 void LinBusProtocol::lin_msg_diag_first_(const uint8_t *message, uint8_t length) {
   uint8_t protocol_control_information = message[1];
-  u_int16_t message_length = (protocol_control_information & 0x0F << 8) + message[2];
+  uint16_t message_length = (protocol_control_information & 0x0F << 8) + message[2];
   if (message_length < 7) {
     ESP_LOGE(TAG, "LIN Protocol issue: Multi frame message too short.");
     // ignore invalid message
@@ -261,7 +262,7 @@ void LinBusProtocol::lin_msg_diag_multi_() {
       this->prepare_update_msg_(response);
 
       // Multi Frame response - consecutive frame
-      u_int16_t answer_position = 5;      // The first 5 bytes are sent in First frame of multi frame response.
+      uint16_t answer_position = 5;      // The first 5 bytes are sent in First frame of multi frame response.
       uint8_t answer_frame_counter = 0;  // Each answer frame can contain 6 bytes
       while (answer_position < answer_len) {
         response = this->lin_empty_response_;

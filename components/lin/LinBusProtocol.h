@@ -11,7 +11,6 @@ class LinBusProtocol : public LinBusListener {
   virtual void lin_heartbeat() = 0;
   virtual void lin_reset_device();
   virtual bool lin_request_pid(const uint8_t pid);
-  virtual bool lin_request_pid(const uint8_t pid);
 
 
  protected:
@@ -32,7 +31,7 @@ class LinBusProtocol : public LinBusListener {
   void prepare_update_msg_(const std::array<uint8_t, 8> message) { this->updates_to_send_.push(std::move(message)); }
   bool is_matching_identifier_(const uint8_t *message);
 
-  u_int16_t multi_pdu_message_expected_size_ = 0;
+  uint16_t multi_pdu_message_expected_size_ = 0;
   uint8_t multi_pdu_message_len_ = 0;
   uint8_t multi_pdu_message_frame_counter_ = 0;
   uint8_t multi_pdu_message_[64];
